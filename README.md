@@ -1,10 +1,10 @@
 # Overview
 
-In this assignment, we will write a simple character driver called booga. Please do a git pull --rebase in your git repo to get the booga project folder that contains the starter code and scripts for this project. Note that, you will only be able to test this assignment on a Linux machine where you have root privilege. A VMware-based CentOS 7 (64 bit) VM image is created on each desktop machine in the classroom - follow the in-class instructions to setup the VM. Later on we will refer to this VM as the cs453 VM. (username/password: cs453/cs453, run commands with sudo to gain root privilege).
+In this assignment, we will write a simple character driver called booga. Note that, you will only be able to test this assignment on a Linux machine where you have root privilege. A VMware-based CentOS 7 (64 bit) VM image is provided. Later on we will refer to this VM as the cs453 VM. (username/password: cs453/cs453, run commands with sudo to gain root privilege). You can also download a CentOS 7 (64 bit) and install it by yourself, and you can also use VirtualBox.
 
 ## Important notes
 
-You MUST build against the kernel version installed on the cs453 VM - but you can copy this same VM image into your own laptop, if you know how to run VMware-based virtual machines on your laptop. If you are unclear what kernel version to build against please ask do NOT just assume. The only time you will need to use root in this project is to load and unload the drivers. You should not use the root account for building, test, etc.
+You MUST build against the kernel version installed on the cs453 VM. If you are unclear what kernel version to build against please ask do NOT just assume. You will need to use root in this project is to load and unload the drivers.
 
 # Specification
 
@@ -15,7 +15,6 @@ The booga driver is a simple character driver that supports the open, read and w
 - googoo! gaagaa!
 - neka! maka!
 - wooga! wooga!
-
 
 Note that the driver may only output part of a phrase if the number of bytes requested by the user is not a multiple of the length of the chosen phrase.  Also each new phrase is separated from the previous one by a single space.
 
@@ -34,7 +33,9 @@ choice = (randval & 0x7F) % 4; /* bitwise AND is to guarantee positive numbers *
 ```
 
 On writing to booga devices /dev/booga0, /dev/booga1, /dev/booga2, the booga device driver works like  /dev/null (so it pretends to write the buffer but doesn't actually write to any device). However if a process tries to write to /dev/booga3, it suffers from sudden death! You cannot call the system call kill() from inside the kernel space so you will have to figure out how to terminate a process from inside the kernel. Search the function kill_pid() in the kernel sources for ideas. Use the SIGTERM signal instead of SIGKILL for terminating the process.
-Get booga stats from /proc
+
+## Get booga stats from /proc
+
 Create /proc entries for the booga driver. It reports on the number of bytes read/written since the driver was loaded, number of times it was opened from each supported minor number, and the number of times each of the four strings was selected. So if we output 1000 characters with the string “booga! booga!” in it, then we count that as one more instance of the phrase for this purpose. If the driver outputs an incomplete phrase, we will still count it as another instance of that phrase being selected. Here is a sample output.
 
 ```console
@@ -54,6 +55,7 @@ strings output:
 ```
 
 ## Thread-safety
+
 Protect the updating of structure used to track the statistics using semaphores. Refer to example driver code on the course page for an example on how to use semaphores in Linux kernel.
 
 ## Notes
@@ -69,7 +71,7 @@ static int __init booga_init(void);
 static void __exit booga_exit(void);
 ```
 
-Remember that you need to use the __copy_to_user(...) kernel function to copy the data to user space. 
+Remember that you need to use the **__copy_to_user(...)** kernel function to copy the data to user space. 
 
 Note that the kernel print messages will not show on the screen. The messages are, however, logged in the file /var/log/messages. You can open another terminal and watch the output to the system messages file with the command:
 
@@ -77,7 +79,7 @@ Note that the kernel print messages will not show on the screen. The messages ar
 sudo tail -f /var/log/messages
 ```
 
-In some versions, you may not have this file setup. Alternatively,  you can use the command  sudo dmesg --follow to watch for kernel log messages.
+In some versions, you may not have this file setup. Alternatively,  you can use the command **sudo dmesg --follow** to watch for kernel log messages.
 
 We have provided a test program called test-booga.c. We will use this program to test the driver. While testing your program, the following situations may arise:
 
